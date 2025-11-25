@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>感恩節主題一頁式網站</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: "Arial", sans-serif;
+        scroll-behavior: smooth;
+    }
+
+    /* 導覽列 */
+    nav {
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        background: #8b4513;
+        padding: 15px 0;
+        text-align: center;
+        z-index: 999;
+    }
+    nav a {
+        color: #fff;
+        margin: 0 20px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    nav a:hover {
+        text-decoration: underline;
+    }
+
+    /* Hero */
+    #home {
+        height: 100vh;
+        background: url("https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?auto=format&fit=crop&w=1350&q=80") center/cover no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-shadow: 2px 2px 5px #333;
+        flex-direction: column;
+        padding-top: 60px;
+    }
+    #home h1 {
+        font-size: 60px;
+        margin-bottom: 10px;
+    }
+
+    section {
+        padding: 80px 20px;
+        text-align: center;
+    }
+    h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+
+    /* ======== 一張一張輪播（修正版） ======== */
+
+    .slide-container {
+        position: relative;
+        width: 90%;
+        max-width: 900px;
+        margin: auto;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+
+    /* 讓輪播容器自動有高度（16:9，可改） */
+    .slide-container::after {
+        content: "";
+        display: block;
+        padding-bottom: 56.25%; /* 高度比例 */
+    }
+
+    .slide-wrapper {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .slide {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        cursor: zoom-in;
+        transition: all 0.6s ease;
+    }
+
+    .slide.active {
+        left: 0;
+        opacity: 1;
+    }
+
+    .slide.to-left { left: -100%; }
+    .slide.to-right { left: 100%; }
+
+    .slide-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        background-color: rgba(0,0,0,0.6);
+        border: none;
+        padding: 12px 20px;
+        cursor: pointer;
+        font-size: 32px;
+        z-index: 50; /* 確保永遠在最上面 */
+    }
+    .slide-btn.left { left: 10px; }
+    .slide-btn.right { right: 10px; }
+
+    /* Modal 放大圖片 */
+    #modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8);
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+    #modal img {
+        width: 80%;
+        max-width: 800px;
+    }
+    #modal button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background: white;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+</style>
+</head>
+
+<body>
+
+<!-- 導覽列 -->
+<nav>
+    <a href="#home">首頁</a>
+    <a href="#gallery">圖片輪播</a>
+    <a href="#about">關於感恩節</a>
+</nav>
+
+<!-- 首頁 -->
+<section id="home">
+    <h1>🍁 Happy Thanksgiving 🍁</h1>
+    <p>感恩所有的美好與陪伴</p>
+</section>
+
+<!-- 圖片輪播 -->
+<section id="gallery">
+    <h2>感恩節圖片輪播</h2>
+
+    <div class="slide-container">
+        <button class="slide-btn left" onclick="prevSlide()">❮</button>
+
+        <div class="slide-wrapper">
+            <img class="slide" src="W1.jpg" onclick="openModal(0)">
+            <img class="slide" src="W2.jpg" onclick="openModal(1)">
+            <img class="slide" src="W3.jpg" onclick="openModal(2)">
+            <img class="slide" src="W4.jpg" onclick="openModal(3)">
+        </div>
+
+        <button class="slide-btn right" onclick="nextSlide()">❯</button>
+    </div>
+</section>
+
+<!-- 感恩節介紹 -->
+<section id="about">
+    <h2>關於感恩節</h2>
+    <p style="max-width:600px;margin:auto;font-size:18px;line-height:1.6;">
+        感恩節是一個表達感謝、家人團聚的節日。
+        無論你身在何處，願你擁有溫暖、美食與笑聲。
+    </p>
+</section>
+
+<!-- Modal -->
+<div id="modal">
+    <button onclick="prevModal()">上一張</button>
+    <img id="modalImg">
+    <button onclick="nextModal()">下一張</button>
+    <button onclick="closeModal()">關閉</button>
+</div>
+
+<script>
+
+/* ===================== 一張一張輪播 ===================== */
+
+const slides = document.querySelectorAll(".slide");
+let index = 0;
+let isMoving = false;
+
+slides[index].classList.add("active");
+
+let autoPlay = setInterval(nextSlide, 3000);
+
+/* 下一張 */
+function nextSlide() {
+    if (isMoving) return;
+    isMoving = true;
+
+    let current = slides[index];
+    index = (index + 1) % slides.length;
+    let next = slides[index];
+
+    next.style.left = "100%";
+
+    requestAnimationFrame(() => {
+        current.classList.add("to-left");
+        next.classList.add("active");
+        next.style.left = "0";
+    });
+
+    setTimeout(() => {
+        current.classList.remove("active", "to-left");
+        current.style.left = "100%";
+        isMoving = false;
+    }, 600);
+}
+
+/* 上一張 */
+function prevSlide() {
+    if (isMoving) return;
+    isMoving = true;
+
+    let current = slides[index];
+    index = (index - 1 + slides.length) % slides.length;
+    let prev = slides[index];
+
+    prev.style.left = "-100%";
+
+    requestAnimationFrame(() => {
+        current.classList.add("to-right");
+        prev.classList.add("active");
+        prev.style.left = "0";
+    });
+
+    setTimeout(() => {
+        current.classList.remove("active", "to-right");
+        current.style.left = "100%";
+        isMoving = false;
+    }, 600);
+}
+
+/*====================== Modal 放大 ======================*/
+
+let modalIndex = 0;
+
+function openModal(i) {
+    modalIndex = i;
+    document.getElementById("modalImg").src = slides[i].src;
+    document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+}
+
+function nextModal() {
+    modalIndex = (modalIndex + 1) % slides.length;
+    document.getElementById("modalImg").src = slides[modalIndex].src;
+}
+
+function prevModal() {
+    modalIndex = (modalIndex - 1 + slides.length) % slides.length;
+    document.getElementById("modalImg").src = slides[modalIndex].src;
+}
+slides[index].classList.add("active");
+/* 下一張（含最後→第一無縫滑動） */
+function nextSlide() {
+    if (isMoving) return;
+    isMoving = true;
+
+    let current = slides[index];
+
+    // 下一張 index
+    let nextIndex = (index + 1) % slides.length;
+    let next = slides[nextIndex];
+
+    // 下一張從右側準備進場
+    next.style.left = "100%";
+    next.classList.add("active");
+
+    requestAnimationFrame(() => {
+        current.style.left = "-100%";
+        next.style.left = "0";
+    });
+
+    setTimeout(() => {
+        current.classList.remove("active");
+        current.style.left = "100%"; // 重置位置
+        index = nextIndex;
+        isMoving = false;
+    }, 600);
+}
+
+/* 上一張（含第一→最後無縫滑動） */
+function prevSlide() {
+    if (isMoving) return;
+    isMoving = true;
+
+    let current = slides[index];
+
+    // 前一張 index
+    let prevIndex = (index - 1 + slides.length) % slides.length;
+    let prev = slides[prevIndex];
+
+    // 上一張從左側準備進場
+    prev.style.left = "-100%";
+    prev.classList.add("active");
+
+    requestAnimationFrame(() => {
+        current.style.left = "100%";
+        prev.style.left = "0";
+    });
+
+    setTimeout(() => {
+        current.classList.remove("active");
+        current.style.left = "100%";
+        index = prevIndex;
+        isMoving = false;
+    }, 600);
+}
+
+</script>
+
+</body>
+</html>
